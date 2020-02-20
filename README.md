@@ -1,5 +1,5 @@
 # Heterotrophs
-16S Data from Non-Axenic Cultures of Prochlorococcus and Synechococcus
+## 16S Data from Non-Axenic Cultures of Prochlorococcus and Synechococcus
 
 The three .Rmd files here specify the parameters used for processing 16S rRNA gene V4 amplicon data from the following papers:
 
