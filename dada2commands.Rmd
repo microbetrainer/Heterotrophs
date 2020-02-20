@@ -1,0 +1,37 @@
+---
+title: "dada2 for Culture Collection"
+output: html_notebook
+---
+
+```{r}
+library(dada2)
+setwd("/Users/skearney/Documents/prochlorococcus/experiments/Culture Collection/16SData/RawData")
+path <- getwd()
+fnFs <- sort(list.files(path,pattern="_R1_001.fastq.gz",full.names=TRUE))
+fnRs <- sort(list.files(path,pattern="_R2_001.fastq.gz",full.names=TRUE))
+sample.names <- sapply(strsplit(basename(fnFs),"_"),`[`,1)
+filtFs <- file.path(path,"filtered",paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path,"filtered",paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+out <- filterAndTrim(fnFs,filtFs,fnRs,filtRs,truncLen=c(265,210),maxN=0,maxEE=c(2,2),trimLeft=c(19,20),rm.phix=TRUE,compress=TRUE,multithread=FALSE)
+errF <- learnErrors(filtFs,multithread=TRUE)
+errR <- learnErrors(filtRs,multithread=TRUE)
+drpF <- derepFastq(filtFs)
+names(drpF) <- sample.names
+drpR <- derepFastq(filtRs)
+
+ddF <- dada(drpF, err=errF,multithread=TRUE,pool = "pseudo")
+ddR <- dada(drpR, err=errR,multithread=TRUE,pool = "pseudo")
+
+mergers <- mergePairs(ddf,drpF,ddR,drpR,verbose=TRUE)
+seqtab <- makeSequenceTable(mergers)
+seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 366:392]
+seqtab.nochim <- removeBimeraDenove(seqtab2,method="consensus",multithread=TRUE,verbose=TRUE)
+
+write.table(seqtab.nochim,file=paste(path,"seqtab.txt"))
+
+
+```
+
+

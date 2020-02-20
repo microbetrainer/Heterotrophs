@@ -1,0 +1,39 @@
+---
+title: "Dada2 for Diatoms"
+author: "Sean Kearney"
+date: "01/08/2020"
+output: html_document
+---
+
+```{r}
+library(dada2)arrows(1,0,2,1,length=0.2,angle=20)
+setwd("/Users/skearney/Documents/prochlorococcus/experiments/Culture Collection/16SData/Syn2018Paper/Syn_16S_10")
+path <- getwd()
+fnFs <- sort(list.files(path,pattern="_R1.fq.gz",full.names=TRUE))
+fnRs <- sort(list.files(path,pattern="_R2.fq.gz",full.names=TRUE))
+#plot quality profiles of F & R
+# Reverse reads truncate @ 200 bp, Forward reads don't truncate
+
+sample.names <- sapply(strsplit(basename(fnFs),"_"),`[`,1)
+filtFs <- file.path(path,"filtered",paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path,"filtered",paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+out <- filterAndTrim(fnFs,filtFs,fnRs,filtRs,truncLen=c(230,180),maxN=0,maxEE=c(2,2),trimLeft=c(15,18),rm.phix=TRUE,compress=TRUE,multithread=FALSE)
+errF <- learnErrors(filtFs,multithread=TRUE)
+errR <- learnErrors(filtRs,multithread=TRUE)
+drpF <- derepFastq(filtFs)
+names(drpF) <- sample.names
+drpR <- derepFastq(filtRs)
+names(drpR) <- sample.names
+
+ddF <- dada(drpF, err=errF,multithread=TRUE,pool = "pseudo")
+ddR <- dada(drpR, err=errR,multithread=TRUE,pool = "pseudo")
+
+mergers <- mergePairs(ddF,drpF,ddR,drpR,verbose=TRUE)
+seqtab <- makeSequenceTable(mergers)
+seqtab.nochim <- removeBimeraDenovo(seqtab,method="consensus",multithread=TRUE,verbose=TRUE)
+
+write.table(seqtab.nochim,file=paste(path,"/seqtab.txt",sep=""))
+```
+
