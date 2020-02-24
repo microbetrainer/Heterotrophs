@@ -1,3 +1,5 @@
+# Fastq Data Processing RMD Files
+
 The three .Rmd files here specify the parameters used for processing 16S rRNA gene V4 amplicon data from the following papers:
 
 dada2commands.rmd: in preparation...  
