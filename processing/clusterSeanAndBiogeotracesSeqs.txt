@@ -1,0 +1,523 @@
+
+#code from compareSeanFeaturesToBiogeotraces
+#moves all of the biogeotraces fastq files to cluster
+(base) dhcp-18-21-148-17:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging PROK_sliced-qual-filtered-fastqs_515Y-926R thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+
+#there are 610 fastq files of biogeotraces sequences
+Elainas-MBP:PROK_sliced-qual-filtered-fastqs_515Y-926R elaina$ ls *.gz | wc -l
+     610
+     
+#I unzipped all of the biogeotraces fastq files
+
+#code from compareSeanFeaturesToBiogeotraces
+#converts each biogeotraces fastq file to a fasta file
+for file in *.fastq; 
+do /nobackup1/chisholmlab/software/bbmap-38.16/reformat.sh in=$file out=${file%.*}.fasta; 
+done
+
+(base) [thomase2@eofe8 PROK_sliced-qual-filtered-fastqs_515Y-926R]$ pwd
+/nobackup1/thomase2/compareSean16SToBiogeotraces/PROK_sliced-qual-filtered-fastqs_515Y-926R
+
+#there are 610 biogeotraces samples
+(base) [thomase2@eofe7 PROK_sliced-qual-filtered-fastqs_515Y-926R]$ ls *.fastq | wc -l
+610
+
+(base) [thomase2@eofe8 PROK_sliced-qual-filtered-fastqs_515Y-926R]$ ls *fasta | wc -l
+610
+
+#combines all of the biogeotraces sequences into one fasta file
+(base) [thomase2@eofe8 PROK_sliced-qual-filtered-fastqs_515Y-926R]$ cat *fasta > allBiogeotracesSeqs.fasta
+
+#downloads biogeotraces fasta file to computer
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/PROK_sliced-qual-filtered-fastqs_515Y-926R/allBiogeotracesSeqs.fasta .
+allBiogeotracesSeqs.fasta                                                                                                                                                                                                                                                     100%  223MB   8.9MB/s   00:25    
+
+#what the headers look like in the sean culture sequence fasta file: 
+#sequencesForTree_noContamination_noMock_withProSyn_no1223.fasta
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" sequencesForTree_noContamination_noMock_withProSyn_no1223.fasta
+>contig_1
+>contig_10
+>contig_101
+
+#correct number of sequences in sean culture samples 
+#this includes pro and syn sequences
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" sequencesForTree_noContamination_noMock_withProSyn_no1223.fasta
+268
+
+#gets rid of "contig_" at beginning of fasta headers in culture sequences fasta file
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ sed '/^>/s/contig_//' sequencesForTree_noContamination_noMock_withProSyn_no1223.fasta > sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta 
+
+#still 268 sequences in the edited sean culture fasta file which is good
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta 
+268
+
+#what the new headers look like in sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta
+>1
+>10
+>101
+
+#there are 1184221 sequences in the biogeotraces fasta file
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" allBiogeotracesSeqs.fasta
+1184221
+
+#what the headers look like in allBiogeotracesSeqs.fasta
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" allBiogeotracesSeqs.fasta | head -5
+>SRR5720219.178050.1 NS500496_227_HVGG2BGXX:1:11107:11820:18511 length=150
+>SRR5720219.4575315.1 NS500496_227_HVGG2BGXX:1:22308:10108:18470 length=150
+>SRR5720219.2235466.1 NS500496_227_HVGG2BGXX:1:13202:4286:1928 length=150
+>SRR5720219.4711995.1 NS500496_227_HVGG2BGXX:1:23102:12811:4522 length=150
+>SRR5720219.14372137.1 NS500496_227_HVGG2BGXX:3:21503:10206:6437 length=150
+
+#gets rid of the space and everything after it in the headers of biogeotraces fasta file
+sed '/^>/s/ .*//' allBiogeotracesSeqs.fasta > allBiogeotracesSeqs_edited.fasta
+
+#there are still 1184221 sequences in the edited biogeotraces fasta file which is good
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" allBiogeotracesSeqs_edited.fasta
+1184221
+
+#what the new headers look like in allBiogeotracesSeqs_edited.fasta
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" allBiogeotracesSeqs_edited.fasta | head -5
+>SRR5720219.178050.1
+>SRR5720219.4575315.1
+>SRR5720219.2235466.1
+>SRR5720219.4711995.1
+>SRR5720219.14372137.1
+
+
+#adds "biogeotraces_ending" to the end of headers in allBiogeotracesSeqs_edited.fasta
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ sed '/^>/ s/$/biogeotraces_ending/' allBiogeotracesSeqs_edited.fasta > allBiogeotracesSeqs_edited_2.fasta
+
+#there are still 1184221 sequences in the second edited biogeotraces fasta file which is good
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" allBiogeotracesSeqs_edited_2.fasta
+1184221
+
+#what the new headers look like in allBiogeotracesSeqs_edited_2.fasta
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" allBiogeotracesSeqs_edited_2.fasta | head -5
+>SRR5720219.178050.1biogeotraces_ending
+>SRR5720219.4575315.1biogeotraces_ending
+>SRR5720219.2235466.1biogeotraces_ending
+>SRR5720219.4711995.1biogeotraces_ending
+>SRR5720219.14372137.1biogeotraces_ending
+
+
+#adds "sean_ending" to the end of headers in sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ sed '/^>/ s/$/sean_ending/' sequencesForTree_noContamination_noMock_withProSyn_no1223_edited.fasta  > sequencesForTree_noContamination_noMock_withProSyn_no1223_edited_2.fasta 
+
+#still 268 sequences in the edited sean culture fasta file which is good
+Elainas-MBP:Sean16SSep2019 elaina$ grep -c ">" sequencesForTree_noContamination_noMock_withProSyn_no1223_edited_2.fasta 
+268
+
+#what the new headers look like in sequencesForTree_noContamination_noMock_withProSyn_no1223_edited_2.fasta 
+Elainas-MBP:Sean16SSep2019 elaina$ grep ">" sequencesForTree_noContamination_noMock_withProSyn_no1223_edited_2.fasta  | head -5
+>1sean_ending
+>10sean_ending
+>101sean_ending
+>1012sean_ending
+>1014sean_ending
+
+
+#makes fasta file that has both biogeotraces and sean culture data
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ cat sequencesForTree_noContamination_noMock_withProSyn_no1223_edited_2.fasta allBiogeotracesSeqs_edited_2.fasta > sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta
+
+#there are 1184489 sequences in sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta
+#this includes sean culture and biogeotraces sequences
+#this is correct because 1184221+268=1184489
+(qiime2-2019.7) dhcp-18-21-128-172:Sean16SSep2019 chisholmlab_elaina$ grep -c ">" sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta
+1184489
+
+
+###the following was done in qiime
+
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ source activate qiime2-2019.7
+
+#imports sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta 
+#(combined sean and biogeotraces fasta file) into qiime2
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime tools import --input-path sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta --output-path sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --type 'SampleData[Sequences]'
+Imported sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.fasta as QIIME1DemuxDirFmt to sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza
+
+#dereplicates sequences
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime vsearch dereplicate-sequences --i-sequences sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --o-dereplicated-table table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --o-dereplicated-sequences rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza
+Saved FeatureTable[Frequency] to: table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza
+Saved FeatureData[Sequence] to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza
+
+###I followed the tutorial for clustering found here: https://docs.qiime2.org/2018.4/tutorials/otu-clustering/
+
+#clusters sequences
+#de novo clustering of a feature table
+#clustering is performed at 97% identity 
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime vsearch cluster-features-de-novo --i-table table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --i-sequences rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --p-perc-identity .97 --o-clustered-table table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza --o-clustered-sequences rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza
+Saved FeatureTable[Frequency] to: table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza
+Saved FeatureData[Sequence] to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza
+
+
+
+##makes features objects that I can view: tables
+
+#clustered features
+(qiime2-2019.7) dhcp-18-21-128-172:Sean16SSep2019 chisholmlab_elaina$ qiime feature-table summarize --i-table table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza --o-visualization table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv 
+Saved Visualization to: table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv
+
+qiime tools view table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv
+
+#not clustered features
+(qiime2-2019.7) dhcp-18-21-128-172:Sean16SSep2019 chisholmlab_elaina$ qiime feature-table summarize --i-table table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --o-visualization table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv 
+Saved Visualization to: table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+
+qiime tools view table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+
+
+##makes features objects that I can view: repSeqs
+
+#clustered features
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza --o-visualization rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv
+Saved Visualization to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv
+
+qiime tools view rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv 
+
+#not clustered features
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qza --o-visualization rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+Saved Visualization to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+
+qiime tools view rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+
+
+
+##view repSeqs objects
+
+#there are 654022 features when they are not clustered
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ qiime tools view rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces.qzv
+
+#there are 28022 features when they are clustered
+#the FeatureData[Sequence] artifact will contain the centroid sequence defining each OTU cluster.
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ qiime tools view rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qzv
+
+
+#assigns taxonomies to clustered features
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime feature-classifier classify-sklearn --i-classifier ../gg-13-8-99-nb-classifier.qza --i-reads rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza --o-classification rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qza
+Saved FeatureData[Taxonomy] to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qza
+
+#makes taxonomy object for clustered features that I can view
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime metadata tabulate --m-input-file rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qza --o-visualization rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qzv
+Saved Visualization to: rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qzv
+
+
+#views taxonomy of clustered feature object
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime tools view rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1_taxonomy.qzv
+
+#I downloaded the taxonomy tsv file of the clustered features from viewing 
+#the above object and saved it as 
+#sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotracesTaxonomy.tsv
+
+#this is the correct number of lines because there are 28022 clustered features and there are 
+#two headers
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ wc -l sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotracesTaxonomy.tsv 
+   28024 sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotracesTaxonomy.tsv
+
+
+#exports table.qza for clustered features to biom format
+#code from https://docs.qiime2.org/2017.7/tutorials/exporting/#exporting-a-feature-table
+#which is outdated--I'm not sure if this is a problem??
+#I could not get the not outdated commands from http://biom-format.org/documentation/biom_conversion.html
+#to work for me
+(qiime2-2019.7) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ qiime tools export --input-path table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza --output-path separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1
+Exported table-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza as BIOMV210DirFmt to directory separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1
+
+#copies biom object for clustered features to cluster
+(base) dhcp-18-21-157-240:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1 thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+feature-table.biom                                                                                                                                                                                                                 100%   70MB  14.0MB/s   00:05    
+
+
+
+
+
+
+
+###failed attempts at converting biom object of clustered features 
+###to tsv
+
+(base) dhcp-18-21-128-172:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging clusterSeanAndBiogeotraces_convertBiom.sh thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+clusterSeanAndBiogeotraces_convertBiom.sh                                                                                                                                                                    100%  991    23.9KB/s   00:00    
+
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ sbatch clusterSeanAndBiogeotraces_convertBiom.sh 
+Submitted batch job 26762872
+
+#code and idea to do this from http://www.metagenomics.wiki/tools/16s/qiime/otu-biom-table
+(qiime2-2019.10) [thomase2@eofe8 compareSean16SToBiogeotraces]$ biom head -n 28022 -m 1184489 -i separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1/feature-table.biom > feature-table-fromBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1.txt   
+
+ (base) dhcp-18-21-128-172:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/feature-table-fromBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1.txt .
+feature-table-fromBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1.txt                                                                                                                                                                                                                                 100% 9225KB   7.6MB/s   00:01    
+     
+(qiime2-2019.10) [thomase2@eofe8 compareSean16SToBiogeotraces]$ biom head -n 28022 -m 11844 -i separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1/feature-table.biom > test
+(qiime2-2019.10) [thomase2@eofe8 compareSean16SToBiogeotraces]$ biom head -n 28022 -m 99999 -i separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1/feature-table.biom > test
+ERROR Traceback (most recent call last):     
+     
+(qiime2-2019.10) [thomase2@eofe8 compareSean16SToBiogeotraces]$ biom head -n 2802 -m 1184489 -i separate-exported-feature-tableBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1/feature-table.biom > test
+Error Traceback (most recent call last):
+
+(qiime2-2019.7) dhcp-18-21-143-176:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging exportBiogeotracesBiom.sh thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+exportBiogeotracesBiom.sh                                                                                                                                                         100%   23KB   1.2MB/s   00:00    
+
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ sbatch exportBiogeotracesBiom.sh 
+Submitted batch job 26770620
+
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ less slurm-26770620.out 
+Usage: biom head [OPTIONS]
+Try "biom head -h" for help.
+
+Error: Invalid value for "-m" / "--n-samp": 1e+05 is not a valid integer
+Usage: biom head [OPTIONS]
+Try "biom head -h" for help.
+
+Error: Invalid value for "-m" / "--n-samp": 2e+05 is not a valid integer
+slurmstepd: error: *** JOB 26770620 ON node342 CANCELLED AT 2020-03-05T03:11:03 DUE TO TIME LIMIT ***
+
+(base) dhcp-18-21-158-2:Sean16SSep2019 chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging exportBiogeotracesBiom_part2.sh thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+exportBiogeotracesBiom_part2.sh                                                                                                                                                                                                                100%   18KB 610.3KB/s   00:00    
+
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ sbatch exportBiogeotracesBiom_part2.sh 
+Submitted batch job 26801067
+ 
+ 
+ 
+ 
+ 
+###successful attempt at converting biom object of clusters to tsv 
+     
+#make directory on the cluster for the extracted subsets of the biom table
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ mkdir extractBiogeotraces
+  
+#moves script to extract subsets of biom table to cluster  
+(qiime2-2019.7) dhcp-18-21-175-238:toExtractBiom chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging * thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/extractBiogeotraces/
+
+#extract subsets of the biom table
+#I wrote the commands for toExtractBiomCodeEdited.sh (checked) in extractBiogeotracesBiom_V2.R (checked)
+(base) [thomase2@eofe8 extractBiogeotraces]$ sbatch toExtractBiomCodeEdited.sh 
+Submitted batch job 26869902
+
+#I did not run out of memory or have any errors on the toExtractBiomCodeEdited.sh 
+#sbatch script
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "TIME" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "time" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "Time" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "uota" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "UOTA" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "emory" slurm-26869902.out
+(base) [thomase2@eofe8 extractBiogeotraces]$ grep "EMORY" slurm-26869902.out
+
+#correct number of subsets of biom table were extracted
+(base) [thomase2@eofe8 extractBiogeotraces]$ ls *biom | wc -l
+100
+
+##moves script to convert subsets of biom table to tsv files to cluster
+(base) dhcp-18-21-175-238:toExtractBiom chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging toConvertBiomCodeEdited.sh thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+toConvertBiomCodeEdited.sh                                                                                                                                  100% 6411   854.9KB/s   00:00    
+
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ mv toConvertBiomCodeEdited.sh extractBiogeotraces/
+
+
+#converts subsets of biom table to tsv files
+#I wrote the commands for toConvertBiomCodeEdited.sh (checked) in extractBiogeotracesBiom_V2.R (checked)
+(base) [thomase2@eofe8 extractBiogeotraces]$ sbatch toConvertBiomCodeEdited.sh 
+Submitted batch job 26875437
+
+#removes previous failed attempts at converting biom table to a text file
+(base) dhcp-18-21-175-238:Sean16SSep2019 chisholmlab_elaina$ rm feature-table-fromBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1.txt
+(base) dhcp-18-21-175-238:Sean16SSep2019 chisholmlab_elaina$ rm feature-table-fromBiom-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces_dn-1Edited.txt 
+
+#I did not run out of memory or have any errors running the toConvertBiomCodeEdited.sh
+#sbatch script
+(base) [thomase2@eofe8 extractBiogeotraces]$ wc -l slurm-26875437.out
+0 slurm-26875437.out
+
+#correct number of biom subset tables were created
+(base) [thomase2@eofe7 extractBiogeotraces]$ ls toExtract*biom | wc -l
+100
+
+#correct number of subsets of biom subset tables were converted to tsv files           
+(base) [thomase2@eofe8 extractBiogeotraces]$ ls *.tsv | wc -l
+100
+
+#downloads tsv files of biom table subsets to computer
+(base) dhcp-18-21-175-238:toExtractBiom chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/extractBiogeotraces/*.tsv .
+
+#correct number of subsets of biom table tsv files were downloaded to computer
+(base) dhcp-18-21-175-238:toExtractBiom chisholmlab_elaina$ ls *.tsv | wc -l
+     100
+
+
+#replaces #OTU ID with OTU_ID in tsv files so that the column with the OTU IDs is read as 
+#one variable in R      
+(base) dhcp-18-20-133-60:toExtractBiom chisholmlab_elaina$ for f in *tsv; do sed 's/#OTU ID/OTU_ID/g' "$f" > "${f}fixedHeader"; done
+
+#correct number of subsets of biom table tsv files were fixed
+(base) dhcp-18-20-133-60:toExtractBiom chisholmlab_elaina$ ls *fixedHeader | wc -l
+     100
+
+#fixed subsets of biom table tsv files were copied to cluster because I didn't have 
+#enough memory on my computer to read in all of these files in R
+(base) dhcp-18-21-175-238:toExtractBiom chisholmlab_elaina$ scp -r -i ~/.ssh/id_rsa_engaging *fixedHeader thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/extractBiogeotraces/
+
+#correct number of fixed tsv files are on cluster
+(base) [thomase2@eofe7 extractBiogeotraces]$ ls *fixedHeader | wc -l
+100
+
+##I downloaded R packages to the cluster 
+/home/thomase2/R/x86_64-pc-linux-gnu-library/3.2/Rcpp/libs
+
+The downloaded source packages are in
+	‘/tmp/Rtmp5fwR0S/downloaded_packages’
+
+#correct number of fixed subsets of biom table tsv files were copied to cluster
+(base) [thomase2@eofe8 extractBiogeotraces]$ ls *fixedHeader | wc -l
+100
+
+
+##on the cluster, I ran these R commands
+
+
+module load engaging/R/3.2.5
+R
+library(tidyverse)
+
+#makes list of biom subset tsv files
+> files <- list.files(pattern = ".*fixedHeader*")
+
+#makes an empty list to story the tsv files that I read in and reformat 
+#as dataframes
+> dfList <- {}
+
+#iterates through the list of tsv files: 
+#reads each file gathering all of the columns except the 
+#OTU_ID column (which is the first one)
+#then, gets just the rows for which a sequence is present 
+#in a cluster
+#makes a list of the dataframes produced
+> for (i in 1:length(files)){
+#reads in the given tsv file
++ df <- read.table(files[i], header = TRUE)
+#gets the number of columns
++ numCols <- ncol(df)
+#gathers all of the columns except the OTU_ID column
++ df <- df %>% gather(2:numCols, key = "sample", value = "present")
+#gets just the rows for which a sequence is present in a cluster
++ df <- df %>% filter(present == 1)
+#adds the dataframe I just created to the list of the dataframes
++ dfList[[i]] <- df
++ }
+
+Note: Using an external vector in selections is ambiguous.
+ℹ Use `all_of(numCols)` instead of `numCols` to silence this message.
+ℹ See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
+This message is displayed once per session.
+
+#there are 100 tsv files that were read in/in the list
+> length(files)
+[1] 100
+
+#df is the last tsv file that was read in
+#it has a length of 3 because there are 3 variables in the gathered 
+#format of df
+> length(df)
+[1] 3
+> str(df)
+'data.frame':	11845 obs. of  3 variables:
+ $ OTU_ID : Factor w/ 2642 levels "000155b510041abdaac7492ea8f6076f75856d83",..: 1277 1277 1277 1277 1277 1277 1277 1277 1277 1277 ...
+ $ sample : chr  "SRR5720339.25101604.2biogeotraces" "SRR5788004.10954462.1biogeotraces" "SRR5788055.18466218.1biogeotraces" "SRR5788071.82071986.1biogeotraces" ...
+ $ present: num  1 1 1 1 1 1 1 1 1 1 ...
+
+#100 tsv files were read in, and reformatted as dataframes, 
+#and added to the list of dataframes
+> length(dfList)
+[1] 100
+
+#combines all of the dataframes into one
+> dfComb <- bind_rows(dfList)
+There were 50 or more warnings (use warnings() to see the first 50)
+> warnings()
+Warning messages:
+1: In bind_rows_(x, .id) : Unequal factor levels: coercing to character
+2: In bind_rows_(x, .id) :
+  binding character and factor vector, coercing into character vector
+3: In bind_rows_(x, .id) :
+  binding character and factor vector, coercing into character vector
+4: In bind_rows_(x, .id) :
+  binding character and factor vector, coercing into character vector
+5: In bind_rows_(x, .id) :
+
+
+#I saved dfComb as a csv file
+
+#downloads combined biom dataframe csv to computer
+(qiime2-2019.7) dhcp-18-21-175-238:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/extractBiogeotraces/combinedBiogeotracesBiom.csv .
+
+
+
+#copies OTU repSeqs object for clusters to cluster
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza                                                                                          100% 1666KB   6.3MB/s   00:00    
+
+#moves script to make phylogeny of OTUs to cluster
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging makePhylogenySeanBiogeotracesOTUs.sh thomase2@eofe8.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/
+makePhylogenySeanBiogeotracesOTUs.sh                                                                                                                                              100%  921   145.3KB/s   00:00    
+
+
+#runs script to make phylogeny of OTUs and export the resulting tree
+(base) [thomase2@eofe8 compareSean16SToBiogeotraces]$ sbatch makePhylogenySeanBiogeotracesOTUs.sh 
+Submitted batch job 26902425
+ 
+#phylogeny of OTUs was created and tree was exported successfully
+(base) [thomase2@eofe7 compareSean16SToBiogeotraces]$ less slurm-26902425.out 
+Saved FeatureData[AlignedSequence] to: aligned-rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza
+Saved FeatureData[AlignedSequence] to: masked-aligned-rep-seqs-sequencesForTree_noContamination_noMock_withProSyn_no1223_biogeotraces-dn-1.qza
+Saved Phylogeny[Unrooted] to: unrooted-seanBiogeotraces-dn-1_tree.qza
+Saved Phylogeny[Rooted] to: rooted-seanBiogeotraces-dn-1_tree.qza
+Exported rooted-seanBiogeotraces-dn-1_tree.qza as NewickDirectoryFormat to directory exported-rooted-seanBiogeotraces-dn-1_tree
+
+#downloads exported tree of clusters to computer
+Elainas-MacBook-Pro:Sean16SSep2019 elaina$ scp -r -i ~/.ssh/id_rsa_engaging thomase2@eofe7.mit.edu:/nobackup1/thomase2/compareSean16SToBiogeotraces/exported-rooted-seanBiogeotraces-dn-1_tree .
+
+
+
+
+###to make PCA of biogeotraces and sean samples
+
+
+##R commands I ran on terminal
+
+#copies physeq object of sean and biogeotraces samples to space hogs terminal because 
+#I didn't have enough memory to process this object on my computer and I couldn't get the 
+#necessary software to install on the cluster
+#from seanBiogeotracesOTUsPCA.R (checked)
+elainas-MacBook-Pro:Sean16SSep2019 elaina$ scp physeq_seanBiogeotraces ethomas@baross.its.carleton.edu:/Accounts/ethomas/
+ethomas@baross.its.carleton.edu's password: 
+physeq_seanBiogeotraces                                                                                           100% 5318KB 294.4KB/s   00:18  
+
+
+##R commands I ran on terminal
+
+R
+
+> .libPaths("~/RPackages")
+
+#loads phyloseq object
+> physeq_seanBiogeotraces <- readRDS("physeq_seanBiogeotraces")
+>
+
+#runs unifrac ordination
+#based on presence, absence
+> library(phyloseq)
+> ordu <- ordinate(physeq_seanBiogeotraces, "PCoA", "unifrac", weighted = FALSE)
+
+#saves ordinate object of sean and biogeotraces samples
+> saveRDS(ordu, "ordu_seanBiogeotraces")
+
+#copies ordinate object of sean and biogeotraces samples to computer
+Elainas-MBP:Sean16SSep2019 elaina$ scp ethomas@baross.its.carleton.edu:~/ordu_seanBiogeotraces .
+ethomas@baross.its.carleton.edu's password: 
+ordu_seanBiogeotraces                                                                                                                                 100% 3370KB   1.0MB/s   00:03    
+
+
+
+
+####this script is all checked

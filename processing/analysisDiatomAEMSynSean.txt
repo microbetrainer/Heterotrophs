@@ -1,0 +1,160 @@
+
+
+
+
+#makes a directory on computer for diatom, AEM Syn, and Sean analysis
+(base) dhcp-18-21-130-4:Sean16SSep2019 chisholmlab_elaina$ mkdir diatomAEMSynSean
+
+#makes a directory on cluster for diatom, AEM Syn, and Sean analysis
+(base) [thomase2@eofe8 thomase2]$ mkdir diatomAEMSynSean
+
+#moves diatomNoMitochondriaChloroplast_withoutLowProp.txt (checked) to cluster
+#diatomNoMitochondriaChloroplast_withoutLowProp.txt (checked) is from getDiatomSequencesForCombiningDiatomAEMSynAndSeanFastas.R (checked)
+(base) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging diatomNoMitochondriaChloroplast_withoutLowProp.txt thomase2@eofe8.mit.edu:/nobackup1/thomase2/diatomAEMSynSean/
+diatomNoMitochondriaChloroplast_withoutLowProp.txt                                                                                                                                                                  100% 1002    43.4KB/s   00:00    
+
+#extracts just diatom sequences from diatom and sean combined fasta file
+(base) [thomase2@eofe8 sean16S2019]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq diatomNoMitochondriaChloroplast_seanNoContamination_noMock_withProSyn_no1223_withoutLowProp.fasta /nobackup1/thomase2/diatomAEMSynSean/diatomNoMitochondriaChloroplast_withoutLowProp.txt > /nobackup1/thomase2/diatomAEMSynSean/diatomNoMitochondriaChloroplast_withoutLowProp.fasta
+
+#same number of rows which is good
+(base) [thomase2@eofe8 diatomAEMSynSean]$ grep -c ">" diatomNoMitochondriaChloroplast_withoutLowProp.fasta
+59
+(base) [thomase2@eofe8 diatomAEMSynSean]$ wc -l diatomNoMitochondriaChloroplast_withoutLowProp.txt
+59 diatomNoMitochondriaChloroplast_withoutLowProp.txt
+
+
+
+#combines AEM syn, sean, and diatom sequences into one fasta file
+(base) [thomase2@eofe8 diatomAEMSynSean]$ cat /home/thomase2/seanAEMSyn16S/AEMSyn_seanNoContamination_noMock_withProSyn_no1223_withoutLowProp.fasta diatomNoMitochondriaChloroplast_withoutLowProp.fasta > diatomAEMSynSean.fasta
+
+#correct number of sequences
+(base) [thomase2@eofe8 diatomAEMSynSean]$ grep -c "sean" diatomAEMSynSean.fasta
+268
+(base) [thomase2@eofe8 diatomAEMSynSean]$ grep -c "syn" diatomAEMSynSean.fasta
+99
+(base) [thomase2@eofe8 diatomAEMSynSean]$ grep -c "diatom" diatomAEMSynSean.fasta
+59
+
+#downloads diatom, AEM syn, and sean sequences to computer
+(base) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/diatomAEMSynSean/diatomAEMSynSean.fasta .
+diatomAEMSynSean.fasta                                                                                                                                                                                              100%  141KB   3.7MB/s   00:00    
+
+
+
+###the following was done in qiime2
+
+(base) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ source activate qiime2-2019.7
+
+#imports diatom, AEM syn, and sean sequences
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools import --input-path diatomAEMSynSean.fasta --output-path diatomAEMSynSean.qza --type 'SampleData[Sequences]'
+Imported diatomAEMSynSean.fasta as QIIME1DemuxDirFmt to diatomAEMSynSean.qza
+
+
+#finds unique features
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime vsearch dereplicate-sequences --i-sequences diatomAEMSynSean.qza --o-dereplicated-table table-diatomAEMSynSean.qza --o-dereplicated-sequences rep-seqs-diatomAEMSynSean.qza
+Saved FeatureTable[Frequency] to: table-diatomAEMSynSean.qza
+Saved FeatureData[Sequence] to: rep-seqs-diatomAEMSynSean.qza
+
+
+
+###I followed the tutorial for clustering found here: https://docs.qiime2.org/2018.4/tutorials/otu-clustering/
+
+
+#de novo clustering of a feature table
+#clustering is performed at 97% identity 
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime vsearch cluster-features-de-novo --i-table table-diatomAEMSynSean.qza --i-sequences rep-seqs-diatomAEMSynSean.qza --p-perc-identity .97 --o-clustered-table table-diatomAEMSynSean-dn-1.qza --o-clustered-sequences rep-seqs-diatomAEMSynSean-dn-1.qza
+Saved FeatureTable[Frequency] to: table-diatomAEMSynSean-dn-1.qza
+Saved FeatureData[Sequence] to: rep-seqs-diatomAEMSynSean-dn-1.qza
+
+
+
+
+##makes features objects that I can view 
+
+#clustered features
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data rep-seqs-diatomAEMSynSean-dn-1.qza --o-visualization rep-seqs-diatomAEMSynSean-dn-1.qzv
+Saved Visualization to: rep-seqs-diatomAEMSynSean-dn-1.qzv
+
+#not clustered features
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data rep-seqs-diatomAEMSynSean.qza --o-visualization rep-seqs-diatomAEMSynSean.qzv
+Saved Visualization to: rep-seqs-diatomAEMSynSean.qzv
+
+
+
+#there are 426 features when they are not clustered
+#which is the correct number of sequences 
+#none of the sequences are identical
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools view rep-seqs-diatomAEMSynSean.qzv
+
+#there are 175 features when they are clustered
+#the FeatureData[Sequence] artifact will contain the centroid sequence defining each OTU cluster.
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools view rep-seqs-diatomAEMSynSean-dn-1.qzv
+
+268+99+59=426
+
+
+
+#assigns taxonomies to clustered features
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime feature-classifier classify-sklearn --i-classifier ../../gg-13-8-99-nb-classifier.qza --i-reads rep-seqs-diatomAEMSynSean-dn-1.qza --o-classification rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qza
+Saved FeatureData[Taxonomy] to: rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qza
+
+
+
+#makes taxonomy object that I can view
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime metadata tabulate --m-input-file rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qza --o-visualization rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qzv
+Saved Visualization to: rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qzv
+
+#views taxonomy object
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools view rep-seqs-diatomAEMSynSean-dn-1_taxonomy.qzv
+
+
+#I downloaded the taxonomy tsv file from viewing the above object and saved it as 
+#diatomAEMSynSean-dn-1_taxonomy.tsv
+
+#this is the correct number of lines because there are 175 clustered features and there are 
+#two headers
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ wc -l diatomAEMSynSean-dn-1_taxonomy.tsv
+     177 diatomAEMSynSean-dn-1_taxonomy.tsv
+
+
+
+
+
+
+#exports table.qza to biom format
+#code from https://docs.qiime2.org/2017.7/tutorials/exporting/#exporting-a-feature-table
+#which is outdated--I'm not sure if this is a problem??
+#I could not get the not outdated commands from http://biom-format.org/documentation/biom_conversion.html
+#to work for me
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools export --input-path table-diatomAEMSynSean-dn-1.qza --output-path exported-feature-tableBiom-diatomAEMSynSean-dn-1
+Exported table-diatomAEMSynSean-dn-1.qza as BIOMV210DirFmt to directory exported-feature-tableBiom-diatomAEMSynSean-dn-1
+
+
+#code and idea to do this from https://forum.qiime2.org/t/which-feature-id-is-in-which-sample/4554
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ biom convert --to-tsv -i exported-feature-tableBiom-diatomAEMSynSean-dn-1/feature-table.biom -o exported-feature-tableBiom-diatomAEMSynSean-dn-1.tsv
+
+
+
+###makes phylogenetic trees
+
+#make phylogenetic trees: unrooted and rooted
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime phylogeny align-to-tree-mafft-fasttree --i-sequences rep-seqs-diatomAEMSynSean-dn-1.qza --o-alignment aligned-rep-seqs-diatomAEMSynSean-dn-1.qza --o-masked-alignment masked-aligned-rep-seqs-diatomAEMSynSean-dn-1.qza --o-tree unrooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza --o-rooted-tree rooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza 
+Saved FeatureData[AlignedSequence] to: aligned-rep-seqs-diatomAEMSynSean-dn-1.qza
+Saved FeatureData[AlignedSequence] to: masked-aligned-rep-seqs-diatomAEMSynSean-dn-1.qza
+Saved Phylogeny[Unrooted] to: unrooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza
+Saved Phylogeny[Rooted] to: rooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza
+
+
+#qiime2 cannot visualize trees so I exported the rooted tree to
+#be viewed; NCBI tree viewer is one way to view the treesv
+(qiime2-2019.7) dhcp-18-21-130-4:diatomAEMSynSean chisholmlab_elaina$ qiime tools export --input-path rooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza --output-path exported-rooted-rep-seqs-diatomAEMSynSean-dn-1_tree
+Exported rooted-rep-seqs-diatomAEMSynSean-dn-1_tree.qza as NewickDirectoryFormat to directory exported-rooted-rep-seqs-diatomAEMSynSean-dn-1_tree
+
+
+
+
+
+
+
+
+

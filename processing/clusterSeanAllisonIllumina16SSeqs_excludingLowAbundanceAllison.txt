@@ -1,0 +1,145 @@
+
+
+#adds list of features after excluding features with <.002 prop abundance to cluster
+(base) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging sequencesForTreeExcludingLowCountsAllison thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/
+sequencesForTreeExcludingLowCountsAllison                                                                                                                                                                                                                      100% 1189   128.8KB/s   00:00    
+
+
+#extracts features that have >=.002 prop abundance in at least one sample from Sean and Allison
+#combined feature fasta file
+#sequencesForTreeExcludingLowCountsAllison (checked) came from getSeanAllisonFeaturesAfterExcludingAllisonLowAbundance.R (checked)
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq allisonSeanRepSeqs.fasta sequencesForTreeExcludingLowCountsAllison > allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta
+
+
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ grep -c ">" allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta
+29
+
+
+#moves fasta to computer
+(base) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta .
+allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta                                                                                                                                                                                                             100% 9922   322.3KB/s   00:00    
+
+
+
+
+
+(base) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ source activate qiime2-2019.7
+
+##fixes format of contig IDs in fasta file
+##I saved over the allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta file that I used for this
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ sed 's,_,,g' allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta > allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited.fasta
+
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ sed 's, ,_,g' allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited.fasta > allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited2.fasta
+
+
+#there are still 29 features which is good
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited2.fasta
+29
+
+
+
+
+###the following was done in qiime2
+
+
+#imports Sean and Allison sequences as feature sequences, after excluding features
+#with < .002 prop abundance
+#from https://docs.qiime2.org/2018.11/tutorials/otu-clustering/
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools import --input-path allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited2.fasta --output-path seanAllisonFeatures_ExcludingLowCountsAllison.qza --type 'SampleData[Sequences]'
+Imported allisonSeanRepSeqs_ExcludingLowCountsAllisonEdited2.fasta as QIIME1DemuxDirFmt to seanAllisonFeatures_ExcludingLowCountsAllison.qza
+
+
+
+#dereplicates sequences
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime vsearch dereplicate-sequences --i-sequences seanAllisonFeatures_ExcludingLowCountsAllison.qza --output-dir derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/
+Saved FeatureTable[Frequency] to: derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_table.qza
+Saved FeatureData[Sequence] to: derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_sequences.qza
+
+
+#makes table of features that I can view
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-table summarize --i-table derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_table.qza --o-visualization dereplicated_table_ExcludingLowCountsAllison.qzv 
+Saved Visualization to: dereplicated_table_ExcludingLowCountsAllison.qzv
+
+
+
+#there are 29 samples/sequences which is good
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools view dereplicated_table_ExcludingLowCountsAllison.qzv
+
+
+
+#assigns taxonomies to features
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-classifier classify-sklearn --i-classifier ../gg-13-8-99-nb-classifier.qza --i-reads derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_sequences.qza --o-classification taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qza
+Saved FeatureData[Taxonomy] to: taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qza
+
+
+
+#makes taxonomy table that I can view
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime metadata tabulate --m-input-file taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qza --o-visualization taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qzv
+Saved Visualization to: taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qzv
+
+
+#I downloaded taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.tsv from here
+qiime tools view taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.qzv
+
+
+
+
+
+#there are 31 lines because there are two title lines
+#sequences of Sean's that weren't determined to be the same feature before are now because I shortened 
+#the sequences
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ wc -l taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.tsv
+      31 taxonomySeanAllisonFeatures_ExcludingLowCountsAllison.tsv
+
+
+
+#make unrooted and rooted phylogenetic trees
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime phylogeny align-to-tree-mafft-fasttree --i-sequences derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_sequences.qza --o-alignment aligned-sequencesForSeanAllisonFeatures_ExcludingLowCountsAllison.qza --o-masked-alignment masked-aligned-sequencesForSeanAllisonFeatures_ExcludingLowCountsAllison.qza --o-tree unrooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza --o-rooted-tree rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza
+Saved FeatureData[AlignedSequence] to: aligned-sequencesForSeanAllisonFeatures_ExcludingLowCountsAllison.qza
+Saved FeatureData[AlignedSequence] to: masked-aligned-sequencesForSeanAllisonFeatures_ExcludingLowCountsAllison.qza
+Saved Phylogeny[Unrooted] to: unrooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza
+Saved Phylogeny[Rooted] to: rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza
+
+#export rooted tree
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools export --input-path rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza --output-path exported-rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison
+Exported rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison.qza as NewickDirectoryFormat to directory exported-rooted-treeSeanAllisonFeatures_ExcludingLowCountsAllison
+
+
+
+
+
+
+
+#exports table.qza to biom format
+#code from https://docs.qiime2.org/2017.7/tutorials/exporting/#exporting-a-feature-table
+#which is outdated--I'm not sure if this is a problem??
+#I could not get the not outdated commands from http://biom-format.org/documentation/biom_conversion.html
+#to work for me
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools export --input-path derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_table.qza --output-path exported-feature-tableBiom_ExcludingLowCountsAllison
+Exported derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_table.qza as BIOMV210DirFmt to directory exported-feature-tableBiom_ExcludingLowCountsAllison
+
+
+#code and idea to do this from https://forum.qiime2.org/t/which-feature-id-is-in-which-sample/4554
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ biom convert --to-tsv -i exported-feature-tableBiom_ExcludingLowCountsAllison/feature-table.biom -o feature-table-fromBiom_ExcludingLowCountsAllison.tsv
+
+
+
+
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data derepSequencesForSeanAllisonFeatures_ExcludingLowCountsAllison/dereplicated_sequences.qza --o-visualization dereplicated_sequences_ExcludingLowCountsAllison.qzv
+Saved Visualization to: dereplicated_sequences_ExcludingLowCountsAllison.qzv
+
+
+#I downloaded allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta from here
+qiime tools view dereplicated_sequences_ExcludingLowCountsAllison.qzv
+
+#it is good that there are still 29 features because none of the sequences should be the same 
+#because they were unique features to begin with
+(qiime2-2019.7) dhcp-18-21-148-88:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" allisonSeanRepSeqs_ExcludingLowCountsAllison.fasta
+29
+
+
+
+
+
+

@@ -422,6 +422,8 @@ summary %>% ggplot(aes(sample.y, V1)) + geom_tile(aes(fill = logNormTotalByPro))
         axis.text=element_text(size=12, color = "black"))
 
 ggsave("heatmap_sideBySide.png", dpi = 600, height = 6, width = 8)
+ggsave("heatmap_sideBySide.svg", dpi = 600, height = 6, width = 8)
+
 
 #ungroup dataframe
 summary <- summary %>% ungroup() 
@@ -542,6 +544,17 @@ ggsave("correlationHeatmap_combinedSeanAllisonIllumina.png", dpi = 600, height =
 ggsave("correlationHeatmap_combinedSeanAllisonIllumina.svg", dpi = 600, height = 6, width = 8)
 
 
+corDF$sample1 <- factor(corDF$sample1, levels = c("allison MED4", "sean MED4", "allison MIT9313", "sean MIT9313", "allison NATL2A", "sean NATL2A"))
+corDF$sample2 <- factor(corDF$sample2, levels = c("sean NATL2A", "allison NATL2A", "sean MIT9313", "allison MIT9313", "sean MED4", "allison MED4"))
+
+
+levels(corDF$sample1)
+levels(corDF$sample2)
+
+corDF %>% ggplot(aes(x = sample1, y = sample2, fill = correlation)) + geom_tile() + scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits=c(-1,1)) + 
+  labs(fill = "Spearman correlation based on\nabundance of non-Pro, non-Syn\nASVs normalized by Pro. abundance", x = "", y = "") + 
+  theme(legend.title=element_text(size=6), legend.text=element_text(size=6)) + 
+  theme(legend.key.size = unit(.4, "cm")) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 

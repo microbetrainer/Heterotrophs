@@ -1,0 +1,159 @@
+
+
+
+
+
+#copies sequencesForTree_noContamination_noMock_noProSyn_no1223.txt (checked) to cluster 
+#so that I can extract sequences
+#sequencesForTree_noContamination_noMock_noProSyn_no1223.txt (checked) came from 
+#getSequencesForTree_noContamination_noProSyn_withoutSample1223.R (checked)
+#this excludes sequences in samples that have have low relative abundances
+(base) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging sequencesForTree_noContamination_noMock_noProSyn_no1223.txt thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/
+sequencesForTree_noContamination_noMock_noProSyn_no1223.txt                                                                          100% 2533   164.0KB/s   00:00    
+
+
+
+#moves sequencesEditedInR.fasta (checked) to cluster
+#sequencesEditedInR.fasta (checked) is sequencesEditedInR.txt (checked) but just with fasta ending 
+#sequencesEditedInR.txt (checked) came from splitUpSequencesIntoSeparateLines.R (checked)
+#sequencesEditedInR.txt (checked) has the sequences that I extracted from seqtab
+(qiime2-2019.7) Chisholms-iMac:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging sequencesEditedInR.fasta thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/
+sequencesEditedInR.fasta      
+
+
+#there are 235 sequences that I want to include in the tree
+(base) [thomase2@eofe8 sean16S2019]$ wc -l sequencesForTree_noContamination_noMock_noProSyn_no1223.txt
+235 sequencesForTree_noContamination_noMock_noProSyn_no1223.txt
+
+
+#extracts sequences (not trimmed to the same length) that I want
+(base) [thomase2@eofe8 sean16S2019]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq sequencesEditedInR.fasta sequencesForTree_noContamination_noMock_noProSyn_no1223.txt > sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta
+
+
+#there are 235 (not trimmed to the same length) sequences 
+(base) [thomase2@eofe8 sean16S2019]$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta
+235
+
+
+#gets the number of nucleotides in each sequence (not trimmed to the same length) 
+(base) [thomase2@eofe8 sean16S2019]$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta > sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_notSameLength_Lengths
+
+#there are 235 lengths because there are 235 sequences
+(base) [thomase2@eofe8 sean16S2019]$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_notSameLength_Lengths
+235
+
+
+#downloads txt file with length of each sequence to computer
+(base) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_notSameLength_Lengths .
+sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_notSameLength_Lengths                                                                                                                                     100% 3708   228.4KB/s   00:00    
+                                                                                                                                                               100% 3741   191.2KB/s   00:00    
+
+#shortest sequence is 370 bp (checked)
+
+
+#I trimmed sequences in sequencesForTree_noContamination_noMock_noProSyn.fasta to 370 basepairs in geneious and 
+#exported the resulting sequences as sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta
+
+#this includes two additional sequences that I want to exclude
+(base) [thomase2@eofe8 sean16S2019]$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta
+237
+
+#moves sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta to cluster
+(base) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/
+sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta                                                                                                                                                            100%   89KB   3.1MB/s   00:00    
+
+
+#extracts the 235 sequences I want from sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta
+(base) [thomase2@eofe8 sean16S2019]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq sequencesForTree_noContamination_noMock_noProSyn_sameLength.fasta sequencesForTree_noContamination_noMock_noProSyn_no1223.txt > sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta
+
+
+#there are 235 sequences still which is good
+(base) [thomase2@eofe8 sean16S2019]$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta
+235
+
+#gets the lengths of all of the newly trimmed sequences
+#they are all 370 basepairs long
+(base) [thomase2@eofe8 sean16S2019]$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta
+
+#downloads fasta file of 235 sequences that have been trimmed to the same length
+(base) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta .
+sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta                                                                                                                                          100%   88KB   2.1MB/s   00:00    
+
+
+
+
+
+
+###the following was done in qiime
+
+(base) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ source activate qiime2-2019.7
+
+
+#imports sequences (trimmed to 370 bp) for which pro sequences and contamination and low 
+#relative abundance sequences were removed
+#I excluded samples JW3 and 1223
+#from https://docs.qiime2.org/2018.11/tutorials/otu-clustering/
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime tools import --input-path sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta --output-path sequencesForTree_noContamination_noMock_noProSyn_sameLength_withoutSample1223.qza --type 'SampleData[Sequences]'
+Imported sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_sameLength.fasta as QIIME1DemuxDirFmt to sequencesForTree_noContamination_noMock_noProSyn_sameLength_withoutSample1223.qza
+
+#dereplicate sequences
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime vsearch dereplicate-sequences --i-sequences sequencesForTree_noContamination_noMock_noProSyn_sameLength_withoutSample1223.qza --output-dir derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/
+Saved FeatureTable[Frequency] to: derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/dereplicated_table.qza
+Saved FeatureData[Sequence] to: derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/dereplicated_sequences.qza
+
+#assign taxonomies to features
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime feature-classifier classify-sklearn --i-classifier ../gg-13-8-99-nb-classifier.qza --i-reads derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/dereplicated_sequences.qza --o-classification taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+Saved FeatureData[Taxonomy] to: taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+
+#make taxonomy table that I can view
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime metadata tabulate --m-input-file taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qza --o-visualization taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qzv
+Saved Visualization to: taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qzv
+
+#I downloaded taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.tsv from here
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime tools view taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.qzv
+
+#there are 237 lines because there are two title lines
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ wc -l taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.tsv
+     237 taxonomySameLength_noContamination_noMock_noProSyn_withoutSample1223.tsv
+
+#make unrooted and rooted phylogenetic trees
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime phylogeny align-to-tree-mafft-fasttree --i-sequences derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/dereplicated_sequences.qza --o-alignment aligned-sequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza --o-masked-alignment masked-aligned-sequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza --o-tree unrooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza --o-rooted-tree rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+Saved FeatureData[AlignedSequence] to: aligned-sequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+Saved FeatureData[AlignedSequence] to: masked-aligned-sequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+Saved Phylogeny[Unrooted] to: unrooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+Saved Phylogeny[Rooted] to: rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza
+
+#export rooted tree
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime tools export --input-path rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza --output-path exported-rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223
+Exported rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223.qza as NewickDirectoryFormat to directory exported-rooted-treeSameLength_noContamination_noMock_noProSyn_withoutSample1223
+
+
+
+
+#make dereplicated sequences file that I can view 
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data derepSequencesForTreeSameLength_noContamination_noMock_noProSyn_withoutSample1223/dereplicated_sequences.qza --o-visualization dereplicated_sequences_noContamination_noMock_noProSyn_withoutSample1223.qzv
+Saved Visualization to: dereplicated_sequences_noContamination_noMock_noProSyn_withoutSample1223.qzv
+
+#I downloaded representative_sameLengthSeqs_noContamination_noMock_noProSyn_withoutSample1223.fasta from here
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ qiime tools view dereplicated_sequences_noContamination_noMock_noProSyn_withoutSample1223.qzv
+
+#none of the sequences were exactly the same so there are the same number of features as 
+#sequences at the start
+(qiime2-2019.7) dhcp-18-21-133-15:Sean16SSep2019 chisholmlab_elaina$ grep -c ">" representative_sameLengthSeqs_noContamination_noMock_noProSyn_withoutSample1223.fasta
+235
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

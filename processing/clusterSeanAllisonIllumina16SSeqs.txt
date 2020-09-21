@@ -1,0 +1,330 @@
+(base) dhcp-18-21-152-16:analysisOfAllison16S chisholmlab_elaina$ source activate qiime2-2019.7
+
+
+#featureSequences.fasta (checked) is Allison Illumina 16S features
+
+
+#representative_sameLengthSeqs_noContamination_noMock_noProSyn_withoutSample1223.fasta (checked) is Sean Illumina 16S features
+
+
+#8349da6d92720a4837cd8527f0423894 is the Alt Mac MIT1002 feature in Allison seqs
+
+
+#f1e1d1742851920183773cc5710788dbe75225e8 is the Alt Mac MIT1002 feature in Sean seqs 
+
+
+#a35fc27c8459ea754b9ba54ff54bc9f1 is shorter than the rest of the Allison seqs
+#I identified it as Pro previously
+#I excluded it for the Allison analysis
+
+(qiime2-2019.7) dhcp-18-21-152-16:analysisOfAllison16S chisholmlab_elaina$ grep "Prochl" taxonomy.tsv
+bea73cbbd0e3b463ed00ddf9446c145e	k__Bacteria; p__Cyanobacteria; c__Synechococcophycideae; o__Synechococcales; f__Synechococcaceae; g__Prochlorococcus; s__	0.9927997962843486
+ad99466178215175335f0fc67a5a4e91	k__Bacteria; p__Cyanobacteria; c__Synechococcophycideae; o__Synechococcales; f__Synechococcaceae; g__Prochlorococcus; s__	0.9996338192309739
+2bba1fdefc5a848323347aaf6bb21deb	k__Bacteria; p__Cyanobacteria; c__Synechococcophycideae; o__Synechococcales; f__Synechococcaceae; g__Prochlorococcus; s__	0.9984526600685266
+a35fc27c8459ea754b9ba54ff54bc9f1	k__Bacteria; p__Cyanobacteria; c__Synechococcophycideae; o__Synechococcales; f__Synechococcaceae; g__Prochlorococcus; s__	0.9940166397507298
+
+
+(qiime2-2019.7) dhcp-18-21-152-16:analysisOfAllison16S chisholmlab_elaina$ grep "a35" feature-table-fromBiom.tsv
+17d786ce8f68c39745f6ba3530db951e	2025.0	0.0	0.0
+a35fc27c8459ea754b9ba54ff54bc9f1	0.0	7.0	0.0
+
+
+#for the Allison analysis, I excluded a35fc27c8459ea754b9ba54ff54bc9f1 in the heatmap in abundanceHeatmap.R 
+#and added its reads to MIT9313: 
+
+#the two Pro sequences in MIT9313 should actually be the same because they are both MIT9313, 
+#this adds up the number of sequences 
+#and gets rid of one
+seqNamesG$`relative abundance` <- ifelse(seqNamesG$sample == "MIT9313" & seqNamesG$seq == "bea73cbbd0e3b463ed00ddf9446c145e", 
+                                        seqNamesG$`relative abundance` + 7, seqNamesG$`relative abundance`)
+
+seqNamesG <- seqNamesG %>% filter(seq != "a35fc27c8459ea754b9ba54ff54bc9f1")
+
+
+#I excluded a35fc27c8459ea754b9ba54ff54bc9f1 from the tree in makingPhylogeneticTreewWithoutLowCountSeqs.txt
+
+
+
+
+###gets the fasta sequences for Allison's features, after excluding low counts
+
+(base) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ source activate qiime2-2019.7
+
+#makes Allison features object viewable 
+(qiime2-2019.7) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data repSeqsWithoutLowCounts.qza --o-visualization repSeqsWithoutLowCounts.qzv
+Saved Visualization to: repSeqsWithoutLowCounts.qzv
+
+#I downloaded the fasta sequences of the features from here
+#and saved it as repSeqsWithoutLowCounts.fasta
+(qiime2-2019.7) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ qiime tools view repSeqsWithoutLowCounts.qzv
+
+#there are 37 features, after excluding low counts
+(qiime2-2019.7) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ grep -c ">" repSeqsWithoutLowCounts.fasta
+37
+
+#a35fc27c8459ea754b9ba54ff54bc9f1 is not present in these feature sequences
+#because I excluded it in of the analysis of the Allison sequences
+(qiime2-2019.7) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ grep "a35f" repSeqsWithoutLowCounts.fasta
+
+#after excluding a35fc27c8459ea754b9ba54ff54bc9f1, all of Allison's features are 256 bp long
+(qiime2-2019.7) dhcp-18-21-147-152:analysisOfAllison16S chisholmlab_elaina$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' repSeqsWithoutLowCounts.fasta
+
+
+
+
+###Sean features
+
+#the Sean features (not trimmed to the same length) that I want to use are 
+#in sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta
+
+#downloads fasta sequences of Sean features to computer
+(qiime2-2019.7) dhcp-18-21-147-152:Sean16SSep2019 chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/sean16S2019/sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta .
+sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta                                                                                                                      100%   89KB 293.5KB/s   00:00    
+
+#there are 235 Sean features
+(qiime2-2019.7) dhcp-18-21-147-152:Sean16SSep2019 chisholmlab_elaina$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta 
+235
+
+
+
+
+
+
+#need to extract just the Sean sequences 
+#from seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt (checked) 
+#which came from getSeanSequencesInMED4MIT9313NATL2A.R (checked)
+~/Dropbox (MIT)/clusterAllisonSeanIllumina16S/seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt
+
+#need to extract just the Allison sequences
+#from ~/Dropbox (MIT)/clusterAllisonSeanIllumina16S/allisonSeqs_withoutPro (checked) 
+#which came from abundanceHeatmap.R (checked)
+
+(base) [thomase2@eofe8 thomase2]$ mkdir combinationAllisonSeanIllumina16S
+
+
+
+###in geneious, in the seanAllison16S folder, I trimmed 1 bp off the beginning and a decent 
+#number of bp off the end of Sean's sequences in 
+#sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223.fasta so Sean's sequences 
+#were the same region/length as Allison's sequences
+#I got the reverse complement of Allison's repSeqsWithoutLowCounts.fasta
+#this is so the Sean and Allison sequences would correspond
+#I saved the resulting fasta files as repSeqsWithoutLowCounts_reverseComplement.fasta and                                                                                                                                                                                                         100%   11KB 714.8KB/s   00:00    
+#sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_trimmedLeftAndRight.fasta  
+#I checked over this work
+
+
+#there are still 37 Allison features
+(base) dhcp-18-21-131-239:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" repSeqsWithoutLowCounts_reverseComplement.fasta 
+37
+
+#all of these sequences are 256 bp long
+(base) dhcp-18-21-131-239:clusterAllisonSeanIllumina16S chisholmlab_elaina$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' repSeqsWithoutLowCounts_reverseComplement.fasta 
+
+#there are still 235 Sean features
+(base) dhcp-18-21-131-239:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_trimmedLeftAndRight.fasta  
+235
+
+#all of these sequences are 256 bp long
+(base) dhcp-18-21-131-239:clusterAllisonSeanIllumina16S chisholmlab_elaina$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_trimmedLeftAndRight.fasta
+
+
+#adds Sean and Allison feature fasta files (edited to correspond) to cluster
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging *.fasta thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/
+repSeqsWithoutLowCounts_reverseComplement.fasta                                                                                                                                                                                                          100%   11KB 714.8KB/s   00:00    
+sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_trimmedLeftAndRight.fasta                                                                                                                                                             100%   62KB   2.9MB/s   00:00    
+
+
+##uploads files of Allison and Sean sequences that I want to cluster
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging allisonSeqs_withoutPro thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/
+allisonSeqs_withoutPro        
+                                                                                                                                                                                                                           100% 1122    73.6KB/s   00:00    
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/
+seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt
+
+
+#extracts geneious trimmed fasta sequences of Sean features that are in MED4, MIT9313, and/or NATL2A
+#seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt (checked) 
+#came from getSeanSequencesInMED4MIT9313NATL2A.R (checked)
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq sequencesForTree_noContamination_noMock_noProSyn_withoutSample1223_trimmedLeftAndRight.fasta seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt > sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta
+
+
+#31 of Sean's features are in MED4, MIT9313, and/or NATL2A 
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta
+31
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ wc -l seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt
+31 seanSequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.txt
+
+#all of the sequences are 256 bp
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta
+
+
+
+
+
+
+
+
+#extracts geneious reverse complemented fasta sequences of Allison features that are in MED4, MIT9313, and/or NATL2A
+#(which were the only samples Allison looked at), excluding Pro sequences 
+#allisonSeqs_withoutPro (checked) came from abundanceHeatmap.R (checked) in analysisOfAllison16S directory
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ /nobackup1/chisholmlab/software/seqtk/seqtk subseq repSeqsWithoutLowCounts_reverseComplement.fasta allisonSeqs_withoutPro > repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta
+
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ grep -c ">" repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta
+34
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ wc -l allisonSeqs_withoutPro
+34 allisonSeqs_withoutPro
+
+#all of the sequences are 256 bp
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ awk '/^>/ {if (seqlen) print seqlen;print;seqlen=0;next} {seqlen+=length($0)}END{print seqlen}' repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta
+
+
+
+
+
+
+##downloads fasta sequences to computer
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta .
+repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta           
+
+                                                                                                                                                                                    100%   10KB 698.3KB/s   00:00    
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta .
+sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta                                                                                                                                                                               100% 8323   232.3KB/s   00:00    
+
+
+
+
+#gets rid of underscores in fasta headers
+#from https://www.biostars.org/p/135035/
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ sed 's,_,,g' sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2A.fasta > sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2AEdited.fasta
+
+#adds "_sequence" to end of fasta headers
+#I needed to do this because otherwise, qiime was not reading in these sequences correctly
+#from https://www.biostars.org/p/11642/
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ sed 's/>.*/&_sequence/' sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2AEdited.fasta > sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2AEdited2.fasta
+
+
+#still 31 sequences which is good
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2AEdited2.fasta
+31
+
+
+#combines fasta files of Allison and Sean sequences
+#from https://stackoverflow.com/questions/8183191/concatenating-files-and-insert-new-line-in-between-files
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ cat repSeqsWithoutLowCounts_reverseComplement_withoutPro.fasta <(echo) sequencesForTree_noContamination_noMock_noProSyn_MED4_MIT9313_NATL2AEdited2.fasta > seanAllisonFeatures.fasta
+
+
+#there are a total of 65 sequences
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" seanAllisonFeatures.fasta
+65
+
+
+###the following was done in qiime2
+
+#imports Sean and Allison sequences as feature sequences
+#from https://docs.qiime2.org/2018.11/tutorials/otu-clustering/
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools import --input-path seanAllisonFeatures.fasta --output-path seanAllisonFeatures.qza --type 'SampleData[Sequences]'
+Imported seanAllisonFeatures.fasta as QIIME1DemuxDirFmt to seanAllisonFeatures.qza
+
+
+
+#dereplicates sequences
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime vsearch dereplicate-sequences --i-sequences seanAllisonFeatures.qza --output-dir derepSequencesForSeanAllisonFeatures/
+Saved FeatureTable[Frequency] to: derepSequencesForSeanAllisonFeatures/dereplicated_table.qza
+Saved FeatureData[Sequence] to: derepSequencesForSeanAllisonFeatures/dereplicated_sequences.qza
+
+
+#makes table of features that I can view
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-table summarize --i-table derepSequencesForSeanAllisonFeatures/dereplicated_table.qza --o-visualization dereplicated_table.qzv 
+Saved Visualization to: dereplicated_table.qzv
+
+#there are 65 samples/sequences which is good
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools view dereplicated_table.qzv
+
+
+
+#assigns taxonomies to features
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-classifier classify-sklearn --i-classifier ../gg-13-8-99-nb-classifier.qza --i-reads derepSequencesForSeanAllisonFeatures/dereplicated_sequences.qza --o-classification taxonomySeanAllisonFeatures.qza
+Saved FeatureData[Taxonomy] to: taxonomySeanAllisonFeatures.qza
+
+#makes taxonomy table that I can view
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime metadata tabulate --m-input-file taxonomySeanAllisonFeatures.qza --o-visualization taxonomySeanAllisonFeatures.qzv
+Saved Visualization to: taxonomySeanAllisonFeatures.qzv
+
+
+#I downloaded taxonomySeanAllisonFeatures.tsv from here
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools view taxonomySeanAllisonFeatures.qzv
+
+#there are 37 lines because there are two title lines
+#sequences of Sean's that weren't determined to be the same feature before are now because I shortened 
+#the sequences
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ wc -l taxonomySeanAllisonFeatures.tsv
+      37 taxonomySeanAllisonFeatures.tsv
+
+
+#make unrooted and rooted phylogenetic trees
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime phylogeny align-to-tree-mafft-fasttree --i-sequences derepSequencesForSeanAllisonFeatures/dereplicated_sequences.qza --o-alignment aligned-sequencesForSeanAllisonFeatures.qza --o-masked-alignment masked-aligned-sequencesForSeanAllisonFeatures.qza --o-tree unrooted-treeSeanAllisonFeatures.qza --o-rooted-tree rooted-treeSeanAllisonFeatures.qza
+Saved FeatureData[AlignedSequence] to: aligned-sequencesForSeanAllisonFeatures.qza
+Saved FeatureData[AlignedSequence] to: masked-aligned-sequencesForSeanAllisonFeatures.qza
+Saved Phylogeny[Unrooted] to: unrooted-treeSeanAllisonFeatures.qza
+Saved Phylogeny[Rooted] to: rooted-treeSeanAllisonFeatures.qza
+
+
+#export rooted tree
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools export --input-path rooted-treeSeanAllisonFeatures.qza --output-path exported-rooted-treeSeanAllisonFeatures
+Exported rooted-treeSeanAllisonFeatures.qza as NewickDirectoryFormat to directory exported-rooted-treeSeanAllisonFeatures
+
+
+
+
+
+
+
+#exports table.qza to biom format
+#code from https://docs.qiime2.org/2017.7/tutorials/exporting/#exporting-a-feature-table
+#which is outdated--I'm not sure if this is a problem??
+#I could not get the not outdated commands from http://biom-format.org/documentation/biom_conversion.html
+#to work for me
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools export --input-path derepSequencesForSeanAllisonFeatures/dereplicated_table.qza --output-path exported-feature-tableBiom
+Exported derepSequencesForSeanAllisonFeatures/dereplicated_table.qza as BIOMV210DirFmt to directory exported-feature-tableBiom
+
+
+#code and idea to do this from https://forum.qiime2.org/t/which-feature-id-is-in-which-sample/4554
+(qiime2-2019.7) dhcp-18-21-147-152:clusterAllisonSeanIllumina16S chisholmlab_elaina$ biom convert --to-tsv -i exported-feature-tableBiom/feature-table.biom -o feature-table-fromBiom.tsv
+
+
+
+
+(qiime2-2019.7) dhcp-18-21-131-239:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime feature-table tabulate-seqs --i-data derepSequencesForSeanAllisonFeatures/dereplicated_sequences.qza --o-visualization dereplicated_sequences.qzv
+Saved Visualization to: dereplicated_sequences.qzv
+
+
+#I downloaded allisonSeanRepSeqs.fasta from here
+(qiime2-2019.7) Chisholms-iMac:clusterAllisonSeanIllumina16S chisholmlab_elaina$ qiime tools view dereplicated_sequences.qzv
+
+(qiime2-2019.7) Chisholms-iMac:clusterAllisonSeanIllumina16S chisholmlab_elaina$ grep -c ">" allisonSeanRepSeqs.fasta
+35
+
+
+##compare to Alt Mac in lab (Alt Mac MIT1002)
+
+
+(base) dhcp-18-21-149-52:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging allisonSeanRepSeqs.fasta thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/
+allisonSeanRepSeqs.fasta                                                                                                                                                                    100%   12KB 785.0KB/s   00:00    
+
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ module load engaging/ncbi-blast/2.6.0+ 
+
+(base) [thomase2@eofe8 combinationAllisonSeanIllumina16S]$ blastn -query allisonSeanRepSeqs.fasta -db ../analysisOfAlteromonasInAllison16S/GCF_001077695.1_ASM107769v1_genomic.fna -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen' -out MIT1002_vs_allisonSeanRepSeqs.fasta
+
+(base) dhcp-18-21-149-52:clusterAllisonSeanIllumina16S chisholmlab_elaina$ scp -i ~/.ssh/id_rsa_engaging thomase2@eofe8.mit.edu:/nobackup1/thomase2/combinationAllisonSeanIllumina16S/MIT1002_vs_allisonSeanRepSeqs.fasta .
+MIT1002_vs_allisonSeanRepSeqs.fasta                                                                                                                                                         100% 1444    58.3KB/s   00:00    
+
+
+
+
+
+
