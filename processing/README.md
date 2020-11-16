@@ -1,4 +1,4 @@
-# Fastq Data Processing RMD Files
+# fastq data processing RMD Files and R scripts for analysis of ASVs 
 
 The three .Rmd files here specify the parameters used for processing 16S rRNA gene V4 amplicon data from the following papers:
 
